@@ -1,0 +1,26 @@
+{
+    "name": "com.starfoundry.typeuss",
+    "version": "1.0.0",
+    "displayName": "TypeUSS",
+    "description": "TypeUSS is a tool for writing UI Toolkit styles (.uss) as type-safe C# code, then compiling to .uss files at compile time.",
+    "unity": "6.1",
+    "unityRelease": "10f1",
+    "keywords": [
+      "plugin",
+      "tool",
+      "utility",
+      "ui",
+      "ui toolkit",
+      "typesafe"
+    ],
+    "author": {
+      "name": "Tom Moore",
+      "email": "thomasmoore515@gmail.com"
+    },
+    "documentationUrl": "https://github.com/TomMoore515/TypeUSS/wiki",
+    "changelogUrl": "https://github.com/TomMoore515/TypeUSS/releases",
+    "licensesUrl": "https://github.com/TomMoore515/TypeUSS/blob/main/LICENSE",
+    "dependencies": {
+      "com.unity.modules.ui": "1.0.0"
+    }
+  }
