@@ -3,8 +3,8 @@
     "version": "1.0.0",
     "displayName": "TypeUSS",
     "description": "Typesafe C# authoring for Unity UI Toolkit Stylesheets.",
-    "unity": "6.1",
-    "unityRelease": "10f1",
+    "unity": "6.2",
+    "unityRelease": "6f2",
     "keywords": [
       "plugin",
       "tool",
@@ -16,8 +16,7 @@
     "author": {
       "name": "Tom Moore"
     },
-    "documentationUrl": "https://github.com/TomMoore515/TypeUSS/wiki",
-    "changelogUrl": "https://github.com/TomMoore515/TypeUSS/releases",
+    "documentationUrl": "https://github.com/TomMoore515/TypeUSS/blob/main/README.md",
     "licensesUrl": "https://github.com/TomMoore515/TypeUSS/blob/main/LICENSE",
     "dependencies": {
       "com.unity.modules.ui": "1.0.0"
