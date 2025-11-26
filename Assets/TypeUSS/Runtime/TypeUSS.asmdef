@@ -1,16 +1,10 @@
 {
-    "name": "TypeUSS.Tests",
+    "name": "TypeUSS",
     "rootNamespace": "TypeUSS",
     "references": [
-        "TypeUSS.Editor",
-        "TypeUSS.Runtime"
+        "UnityEngine.UIElementsModule"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

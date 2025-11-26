@@ -1,5 +1,0 @@
-
-namespace TypeUSS.Runtime.Core
-{
-    
-}

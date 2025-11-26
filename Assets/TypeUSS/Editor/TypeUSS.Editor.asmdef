@@ -1,8 +1,8 @@
 {
     "name": "TypeUSS.Editor",
-    "rootNamespace": "TypeUSS",
+    "rootNamespace": "TypeUSS.Editor",
     "references": [
-        "TypeUSS.Runtime"   
+        "TypeUSS"
     ],
     "includePlatforms": [
         "Editor"
