@@ -9,18 +9,19 @@ Write your UI Toolkit styles in C# with full IntelliSense and compile-time safet
 ![C#](https://img.shields.io/badge/Language-C%23-blue?style=for-the-badge)
 ![USS](https://img.shields.io/badge/Language-USS-blue?style=for-the-badge)
 
-## The Problem
+> [!NOTE]
+> The code contained in this package is from my personal Unity project Starfoundry, while we are using it in production, that does not mean it is perfect or stable - this package should be considered experimental and the API may change without warning.
+
+## Overview
 
 Unity UI Toolkit forces you to choose between:
 
 | Approach | Type Safety | IntelliSense | Performance | 
 |----------|-------------|--------------|-------------|
 | Inline C# | ✅ | ✅ | ❌ Poor (per-element allocation) |
-| USS files | ❌ | ❌ | ✅ Optimal |
+| USS files | ❌ | ❌ | ✅ High (native UI Toolkit) |
 
-## The Solution
-
-TypeUSS lets you author styles in C# and generates USS at compile time:
+TypeUSS lets you author styles in C# and generates USS automatically:
 
 ```csharp
 // ❌ Before: No IntelliSense, typos compile fine, painful to maintain
@@ -31,7 +32,7 @@ TypeUSS lets you author styles in C# and generates USS at compile time:
 ```
 
 ```csharp
-// ✅ After: Full type safety, autocomplete, refactoring support
+// ✅ After: Full type safety, autocomplete, can share files with C# based component definitions
 [GenerateUSS("UI/Generated/Chat.uss")]
 public static class ChatStyles
 {
