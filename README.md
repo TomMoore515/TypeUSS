@@ -256,7 +256,7 @@ TypeUSS was developed and tested with Unity 6.2 - it may work with earlier versi
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE.md) for details.
 
 ## Contributing
 
