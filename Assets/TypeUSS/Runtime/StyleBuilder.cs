@@ -70,14 +70,9 @@ namespace TypeUSS
         public StyleBuilder PaddingLeft(Length length) => Prop("padding-left", length.ToUSS());
 
         // Spacing - Margin
-        public StyleBuilder Margin(float all)
-            => Prop("margin", $"{all}px");
-
-        public StyleBuilder Margin(float vertical, float horizontal)
-            => Prop("margin", $"{vertical}px {horizontal}px");
-
-        public StyleBuilder Margin(float top, float right, float bottom, float left)
-            => Prop("margin", $"{top}px {right}px {bottom}px {left}px");
+        public StyleBuilder Margin(float all) => Prop("margin", $"{all}px");
+        public StyleBuilder Margin(float vertical, float horizontal) => Prop("margin", $"{vertical}px {horizontal}px");
+        public StyleBuilder Margin(float top, float right, float bottom, float left) => Prop("margin", $"{top}px {right}px {bottom}px {left}px");
 
         public StyleBuilder MarginTop(Length length) => Prop("margin-top", length.ToUSS());
         public StyleBuilder MarginRight(Length length) => Prop("margin-right", length.ToUSS());
@@ -85,13 +80,28 @@ namespace TypeUSS
         public StyleBuilder MarginLeft(Length length) => Prop("margin-left", length.ToUSS());
 
         // Position
-        public StyleBuilder Position(Position position)
-            => Prop("position", position.ToUSS());
+        public StyleBuilder Position(Position position) => Prop("position", position.ToUSS());
 
         public StyleBuilder Top(Length length) => Prop("top", length.ToUSS());
         public StyleBuilder Right(Length length) => Prop("right", length.ToUSS());
         public StyleBuilder Bottom(Length length) => Prop("bottom", length.ToUSS());
         public StyleBuilder Left(Length length) => Prop("left", length.ToUSS());
+
+        // Background
+        public StyleBuilder BackgroundImage(string value)
+            => Prop("background-image", value);
+
+        public StyleBuilder UnityFontDefinition(string value)
+            => Prop("-unity-font-definition", value);
+
+        public StyleBuilder UnityBackgroundImageTintColor(Color color)
+            => Prop("-unity-background-image-tint-color", ColorToUSS(color));
+
+        public StyleBuilder UnityBackgroundImageTintColor(string hexColor)
+            => Prop("-unity-background-image-tint-color", hexColor);
+
+        public StyleBuilder UnityBackgroundScaleMode(string mode)
+            => Prop("-unity-background-scale-mode", mode);
 
         // Colors
         public StyleBuilder BackgroundColor(Color color)
@@ -163,8 +173,109 @@ namespace TypeUSS
         public StyleBuilder Overflow(Overflow overflow)
             => Prop("overflow", overflow.ToUSS());
 
+        public StyleBuilder TextOverflow(TextOverflow textOverflow) => textOverflow switch
+        {
+            UnityEngine.UIElements.TextOverflow.Clip => Prop("text-overflow", "clip"),
+            UnityEngine.UIElements.TextOverflow.Ellipsis => Prop("text-overflow", "ellipsis"),
+            _ => Prop("text-overflow", "clip")
+        };
+
         public StyleBuilder Opacity(float value)
             => Prop("opacity", value.ToString(CultureInfo.InvariantCulture));
+
+        // Text
+        public StyleBuilder WhiteSpace(WhiteSpace whiteSpace) => whiteSpace switch
+        {
+            UnityEngine.UIElements.WhiteSpace.Normal => Prop("white-space", "normal"),
+            UnityEngine.UIElements.WhiteSpace.NoWrap => Prop("white-space", "nowrap"),
+            _ => Prop("white-space", "normal")
+        };
+
+        // Typography
+        public StyleBuilder FontSize(int size) => Prop("font-size", $"{size}px");
+        public StyleBuilder FontSize(float size) => Prop("font-size", $"{size}px");
+        public StyleBuilder LetterSpacing(float value) => Prop("letter-spacing", $"{value.ToString(CultureInfo.InvariantCulture)}px");
+
+        public StyleBuilder UnityFontStyleAndWeight(FontStyle style) => style switch
+        {
+            FontStyle.Normal => Prop("-unity-font-style", "normal"),
+            FontStyle.Bold => Prop("-unity-font-style", "bold"),
+            FontStyle.Italic => Prop("-unity-font-style", "italic"),
+            FontStyle.BoldAndItalic => Prop("-unity-font-style", "bold-and-italic"),
+            _ => Prop("-unity-font-style", "normal")
+        };
+
+        public StyleBuilder UnityTextAlign(TextAnchor anchor) => anchor switch
+        {
+            TextAnchor.UpperLeft => Prop("-unity-text-align", "upper-left"),
+            TextAnchor.UpperCenter => Prop("-unity-text-align", "upper-center"),
+            TextAnchor.UpperRight => Prop("-unity-text-align", "upper-right"),
+            TextAnchor.MiddleLeft => Prop("-unity-text-align", "middle-left"),
+            TextAnchor.MiddleCenter => Prop("-unity-text-align", "middle-center"),
+            TextAnchor.MiddleRight => Prop("-unity-text-align", "middle-right"),
+            TextAnchor.LowerLeft => Prop("-unity-text-align", "lower-left"),
+            TextAnchor.LowerCenter => Prop("-unity-text-align", "lower-center"),
+            TextAnchor.LowerRight => Prop("-unity-text-align", "lower-right"),
+            _ => Prop("-unity-text-align", "middle-left")
+        };
+
+        public StyleBuilder UnityFontDefinition(Font font)
+            => Prop("-unity-font-definition", font != null ? $"resource('Fonts/{font.name}')" : "none");
+
+        // Background positioning
+        public StyleBuilder BackgroundPosition(BackgroundPositionKeyword horizontal, BackgroundPositionKeyword vertical)
+        {
+            var h = horizontal switch
+            {
+                BackgroundPositionKeyword.Left => "left",
+                BackgroundPositionKeyword.Center => "center",
+                BackgroundPositionKeyword.Right => "right",
+                BackgroundPositionKeyword.Top => "top",
+                BackgroundPositionKeyword.Bottom => "bottom",
+                _ => "center"
+            };
+            var v = vertical switch
+            {
+                BackgroundPositionKeyword.Left => "left",
+                BackgroundPositionKeyword.Center => "center",
+                BackgroundPositionKeyword.Right => "right",
+                BackgroundPositionKeyword.Top => "top",
+                BackgroundPositionKeyword.Bottom => "bottom",
+                _ => "center"
+            };
+            return Prop("background-position", $"{h} {v}");
+        }
+
+        public StyleBuilder BackgroundRepeat(Repeat horizontal, Repeat vertical)
+        {
+            var h = horizontal switch
+            {
+                Repeat.NoRepeat => "no-repeat",
+                Repeat.Repeat => "repeat",
+                Repeat.Round => "round",
+                Repeat.Space => "space",
+                _ => "no-repeat"
+            };
+            var v = vertical switch
+            {
+                Repeat.NoRepeat => "no-repeat",
+                Repeat.Repeat => "repeat",
+                Repeat.Round => "round",
+                Repeat.Space => "space",
+                _ => "no-repeat"
+            };
+            return Prop("background-repeat", $"{h} {v}");
+        }
+
+        public StyleBuilder BackgroundSize(float width, float height)
+            => Prop("background-size", $"{width}px {height}px");
+
+        public StyleBuilder BackgroundSize(Length width, Length height)
+            => Prop("background-size", $"{width.ToUSS()} {height.ToUSS()}");
+
+        // Transform
+        public StyleBuilder Rotate(float degrees)
+            => Prop("rotate", $"{degrees}deg");
 
         private static string ColorToUSS(Color color)
         {

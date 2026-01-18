@@ -27,8 +27,9 @@ namespace TypeUSS
         /// <summary>
         /// Implicit conversion to string for AddToClassList() compatibility.
         /// Returns ClassName if available, otherwise the full SelectorString.
+        /// Returns null if the selector is null (safe for AddToClassList).
         /// </summary>
-        public static implicit operator string(Selector s) => s.ClassName ?? s.SelectorString;
+        public static implicit operator string(Selector s) => s?.ClassName ?? s?.SelectorString;
 
         // Pseudo-class modifiers
         public Selector Hover() => new($"{SelectorString}:hover");
@@ -66,10 +67,22 @@ namespace TypeUSS
             => new($"{SelectorString} {descendant.SelectorString}");
 
         /// <summary>
+        /// Descendant combinator (alias): ancestor descendant
+        /// </summary>
+        public Selector Desc(Selector descendant)
+            => Descendant(descendant);
+
+        /// <summary>
         /// Combines selectors without space: Button.my-class
         /// </summary>
         public Selector And(Selector other)
             => new($"{SelectorString}{other.SelectorString}");
+
+        /// <summary>
+        /// Adds a class to this selector: .my-class.added-class
+        /// </summary>
+        public Selector AddClass(string className)
+            => new($"{SelectorString}.{className}");
 
         /// <summary>
         /// Creates a TypeStyle from this selector with the specified styles.

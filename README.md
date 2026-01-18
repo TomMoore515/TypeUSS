@@ -10,7 +10,7 @@ Write your UI Toolkit styles in C# with full IntelliSense and compile-time safet
 ![USS](https://img.shields.io/badge/Language-USS-blue?style=for-the-badge)
 
 > [!NOTE]
-> The code contained in this package is from my personal Unity project Starfoundry, while we are using it in production, that does not mean it is perfect or stable - this package should be considered experimental and the API may change without warning.
+> The code contained in this package is from my personal Unity project Automancer, while we are using it in production, that does not mean it is perfect or stable - this package should be considered experimental and the API may change without warning.
 
 ## Overview
 
@@ -158,8 +158,12 @@ Ancestor.Descendant(Child)
 // Adjacent sibling: .a + .b
 A + B
 
-// Combine without space: Button.my-class
-Sel.Type<Button>().And(MyClass)
+// Combine without space (multiple classes): .btn.primary
+Button.And(Primary)
+Button.And(Sel.Class("primary"))
+
+// Add a modifier class: .btn.focused
+Button.AddClass("focused")
 ```
 
 ### Properties
@@ -167,9 +171,11 @@ Sel.Type<Button>().And(MyClass)
 TypeUSS wraps the most common USS properties with typesafe methods:
 
 ```csharp
-.Width(100)                    // 100px
-.Width(50.Percent())           // 50%
-.Width(Length.Auto)            // auto
+// Sizing with various length units
+.Width(100)                        // 100px
+.Width(Length.Percent(50))         // 50%
+.Width(Length.Auto)                // auto
+.MarginLeft(Length.Auto)           // auto (useful for push-right)
 
 .Height(200)
 .MinWidth(100)
@@ -200,6 +206,25 @@ TypeUSS wraps the most common USS properties with typesafe methods:
 .Visibility(Visibility.Hidden)
 .Overflow(Overflow.Hidden)
 .Opacity(0.5f)
+
+// Typography
+.FontSize(14)
+.LetterSpacing(2)
+.UnityTextAlign(TextAnchor.MiddleCenter)
+.UnityFontStyleAndWeight(FontStyle.Bold)
+.UnityFontDefinition(myFont)
+.WhiteSpace(WhiteSpace.Normal)
+
+// Background
+.BackgroundImage(texture)
+.BackgroundPosition(BackgroundPositionKeyword.Center, BackgroundPositionKeyword.Center)
+.BackgroundSize(100, 100)
+.BackgroundRepeat(Repeat.NoRepeat, Repeat.NoRepeat)
+
+// Transform
+.Rotate(45f)
+.Scale(1.5f)
+.TransformOrigin(Length.Percent(50), Length.Percent(50))
 ```
 
 ### Escape Hatch
@@ -250,9 +275,120 @@ public class UIManager : MonoBehaviour
 }
 ```
 
+## Props Pattern Integration
+
+TypeUSS works well with a React-inspired Props pattern for UI components. Co-locate styles at the top of each component file:
+
+```csharp
+using System;
+using UnityEngine;
+using UnityEngine.UIElements;
+using TypeUSS;
+
+namespace MyGame.UI.Components
+{
+    // ============================================================
+    // STYLES (co-located at top of file)
+    // ============================================================
+
+    [GenerateUSS("UI/Generated/MyComponent.uss")]
+    public static class MyComponentStyles
+    {
+        public static readonly Selector Root = Sel.Class("my-component");
+        public static readonly TypeStyle RootStyle = Root.Style(s => s
+            .FlexDirection(FlexDirection.Row)
+            .Padding(10));
+
+        public static readonly Selector Label = Sel.Class("my-component__label");
+        public static readonly TypeStyle LabelStyle = Label.Style(s => s
+            .FontSize(14)
+            .Color(Color.white));
+
+        // Modifier class for focused state
+        public static readonly TypeStyle LabelFocused = Label.And(Sel.Class("focused")).Style(s => s
+            .Color(Color.yellow));
+    }
+
+    // ============================================================
+    // PROPS (immutable configuration)
+    // ============================================================
+
+    public sealed record MyComponentProps(
+        string Text,
+        bool IsFocused = false,
+        Action OnClick = null
+    );
+
+    // ============================================================
+    // STATIC FUNCTIONAL COMPONENT
+    // ============================================================
+
+    public static class MyComponent
+    {
+        public static VisualElement Render(MyComponentProps props)
+        {
+            var root = new VisualElement();
+            root.name = "my-component";
+            root.AddToClassList(MyComponentStyles.Root);
+
+            var label = new Label(props.Text);
+            label.AddToClassList(MyComponentStyles.Label);
+            label.EnableInClassList("focused", props.IsFocused);
+            root.Add(label);
+
+            root.RegisterCallback<ClickEvent>(_ => props.OnClick?.Invoke());
+            return root;
+        }
+
+        public static void Update(VisualElement root, MyComponentProps props)
+        {
+            var label = root.Q<Label>();
+            if (label != null)
+            {
+                label.text = props.Text;
+                label.EnableInClassList("focused", props.IsFocused);
+            }
+        }
+    }
+
+    // ============================================================
+    // WRAPPER COMPONENT (for imperative usage or IUpdatableComponent)
+    // ============================================================
+
+    public sealed class MyComponentWrapper : VisualElement
+    {
+        private MyComponentProps _props;
+
+        public MyComponentWrapper(MyComponentProps props)
+        {
+            _props = props;
+            var content = MyComponent.Render(props);
+            Add(content);
+        }
+
+        public void UpdateProps(MyComponentProps props)
+        {
+            _props = props;
+            MyComponent.Update(this[0], props);
+        }
+    }
+}
+```
+
+### Key Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Props are immutable** | `sealed record` with all configuration |
+| **Styles at top** | TypeUSS styles defined before component code |
+| **Render creates** | `Render(props)` returns new `VisualElement` tree |
+| **Update mutates** | `Update(element, props)` updates existing elements |
+| **BEM naming** | `component`, `component__element`, `component--modifier` |
+| **Modifier classes** | Dynamic state via `EnableInClassList()` |
+
 ## Unity Version Compatibility
 
-TypeUSS was developed and tested with Unity 6.2 - it may work with earlier versions but I have not taken the time to verify compatibility.
+TypeUSS was developed and tested with Unity 6.3 - it may work with earlier versions but I have not taken the time to verify compatibility.
 
 ## License
 

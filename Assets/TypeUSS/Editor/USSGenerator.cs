@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using TypeUSS;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
@@ -47,19 +48,24 @@ namespace TypeUSS.Editor
         public static string GenerateUSSForClass(Type type, GenerateUSSAttribute attribute)
         {
             var styles = ExtractStyles(type);
-            return BuildUSSContent(styles, attribute.Header);
+            return BuildUSSContent(styles);
         }
 
         private static void UpdateStyleSheetReferences(List<string> generatedFiles)
         {
-            var styleSheets = new List<StyleSheet>();
+            // Build a dictionary of path -> StyleSheet
+            var pathToSheet = new Dictionary<string, StyleSheet>();
 
             foreach (var path in generatedFiles)
             {
                 var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
                 if (sheet != null)
                 {
-                    styleSheets.Add(sheet);
+                    // Normalize path for comparison
+                    var normalizedPath = path.Replace("\\", "/");
+                    if (normalizedPath.StartsWith("Assets/"))
+                        normalizedPath = normalizedPath.Substring("Assets/".Length);
+                    pathToSheet[normalizedPath] = sheet;
                 }
                 else
                 {
@@ -67,30 +73,40 @@ namespace TypeUSS.Editor
                 }
             }
 
-            if (styleSheets.Count == 0) return;
+            if (pathToSheet.Count == 0) return;
 
-            // Find all MonoBehaviours with a StyleSheet[] field marked with [TypeUSSStyleSheets]
-            // Or specifically look for types implementing a known interface/base class
-            // For simplicity, we'll search for any field named "styleSheets" of type StyleSheet[]
-            var installers = FindStyleSheetConsumers();
+            // Find all MonoBehaviours with a StyleSheet[] field
+            var consumers = FindStyleSheetConsumers();
 
-            foreach (var installer in installers)
+            foreach (var (monoBehaviour, field, pathAttribute) in consumers)
             {
-                var field = installer.GetType()
-                    .GetField("styleSheets", BindingFlags.NonPublic | BindingFlags.Instance);
+                List<StyleSheet> sheetsToAssign;
 
-                if (field != null && field.FieldType == typeof(StyleSheet[]))
+                if (pathAttribute != null && pathAttribute.PathPrefixes.Length > 0)
                 {
-                    field.SetValue(installer, styleSheets.ToArray());
-                    EditorUtility.SetDirty(installer);
-                    Debug.Log($"[TypeUSS] Updated {installer.GetType().Name} with {styleSheets.Count} stylesheets");
+                    // Filter by path prefixes
+                    sheetsToAssign = pathToSheet
+                        .Where(kvp => pathAttribute.PathPrefixes.Any(prefix =>
+                            kvp.Key.StartsWith(prefix.Replace("\\", "/"), StringComparison.OrdinalIgnoreCase)))
+                        .Select(kvp => kvp.Value)
+                        .ToList();
                 }
+                else
+                {
+                    // No filter - include all stylesheets
+                    sheetsToAssign = pathToSheet.Values.ToList();
+                }
+
+                field.SetValue(monoBehaviour, sheetsToAssign.ToArray());
+                EditorUtility.SetDirty(monoBehaviour);
+                Debug.Log($"[TypeUSS] Updated {monoBehaviour.GetType().Name} with {sheetsToAssign.Count} stylesheets" +
+                    (pathAttribute != null ? $" (filtered by: {string.Join(", ", pathAttribute.PathPrefixes)})" : ""));
             }
         }
 
-        private static List<MonoBehaviour> FindStyleSheetConsumers()
+        private static List<(MonoBehaviour mono, FieldInfo field, StyleSheetPathAttribute pathAttr)> FindStyleSheetConsumers()
         {
-            var results = new List<MonoBehaviour>();
+            var results = new List<(MonoBehaviour, FieldInfo, StyleSheetPathAttribute)>();
 
             // Search in all open scenes
             for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)
@@ -100,18 +116,21 @@ namespace TypeUSS.Editor
 
                 foreach (var root in scene.GetRootGameObjects())
                 {
-                    results.AddRange(root.GetComponentsInChildren<MonoBehaviour>(true)
-                        .Where(mb => mb != null && HasStyleSheetsField(mb.GetType())));
+                    foreach (var mb in root.GetComponentsInChildren<MonoBehaviour>(true))
+                    {
+                        if (mb == null) continue;
+
+                        var field = mb.GetType().GetField("styleSheets", BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (field != null && field.FieldType == typeof(StyleSheet[]))
+                        {
+                            var pathAttr = field.GetCustomAttribute<StyleSheetPathAttribute>();
+                            results.Add((mb, field, pathAttr));
+                        }
+                    }
                 }
             }
 
             return results;
-        }
-
-        private static bool HasStyleSheetsField(Type type)
-        {
-            var field = type.GetField("styleSheets", BindingFlags.NonPublic | BindingFlags.Instance);
-            return field != null && field.FieldType == typeof(StyleSheet[]);
         }
 
         private static IEnumerable<(Type type, GenerateUSSAttribute attr)> FindAllStyleClasses()
@@ -179,15 +198,11 @@ namespace TypeUSS.Editor
             return styles;
         }
 
-        private static string BuildUSSContent(List<TypeStyle> styles, string customHeader)
+        private static string BuildUSSContent(List<TypeStyle> styles)
         {
             var sb = new StringBuilder();
 
             sb.AppendLine(GeneratedHeader);
-            if (!string.IsNullOrEmpty(customHeader))
-            {
-                sb.AppendLine($"/* {customHeader} */");
-            }
             sb.AppendLine();
 
             foreach (var style in styles)
