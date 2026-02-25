@@ -51,11 +51,21 @@ Generates standard USS files that Unity loads normally. Zero runtime overhead.
 
 ## Installation
 
-### Manual Installation (recommended)
+### Via Unity Package Manager (Git URL)
 
-Copy the `TypeUSS` folder into your project's `Assets/Scripts/` directory.
+1. Open **Window > Package Manager**
+2. Click the **+** button in the top-left
+3. Select **Add package from git URL...**
+4. Enter:
+   ```
+   https://github.com/TomMoore515/TypeUSS.git?path=/Assets/TypeUSS
+   ```
 
-We recommend manual installation so you can easily add additional custom property wrappers as needed. TypeUSS doesn't wrap every USS property yet, just the most common ones. If you add new properties please consider contributing them!
+### Manual Installation
+
+Copy the `Assets/TypeUSS` folder into your project's `Assets` directory.
+
+Manual installation lets you easily add additional custom property wrappers as needed. TypeUSS doesn't wrap every USS property yet, just the most common ones. If you add new properties please consider contributing them!
 
 ## Quick Start
 
