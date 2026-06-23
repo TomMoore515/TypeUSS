@@ -224,6 +224,16 @@ TypeUSS wraps the most common USS properties with typesafe methods:
 .UnityFontStyleAndWeight(FontStyle.Bold)
 .UnityFontDefinition(myFont)
 .WhiteSpace(WhiteSpace.Normal)
+.WordSpacing(2)
+.UnityParagraphSpacing(8)
+.UnityCursorColor(Color.white)   // text field caret color
+.Cursor("resource(\"cursors/hand\")")   // mouse cursor (passthrough)
+
+// Text effects
+.TextShadow(2, 2, 4, Color.black)        // offset-x, offset-y, blur, color
+.UnityTextOutlineWidth(1)
+.UnityTextOutlineColor(Color.black)
+.UnityTextOutline(1, Color.black)        // shorthand: width + color
 
 // Background
 .BackgroundImage(texture)
@@ -231,10 +241,30 @@ TypeUSS wraps the most common USS properties with typesafe methods:
 .BackgroundSize(100, 100)
 .BackgroundRepeat(Repeat.NoRepeat, Repeat.NoRepeat)
 
+// 9-slice (edges are integer pixel counts in the source sprite)
+.UnitySlice(12)                    // all edges
+.UnitySlice(12, 8, 12, 8)          // left, top, right, bottom
+.UnitySliceLeft(12)                // individual edge
+.UnitySliceScale(Length.Px(1))
+
 // Transform
 .Rotate(45f)
 .Scale(1.5f)
+.Translate(10, Length.Percent(50))
 .TransformOrigin(Length.Percent(50), Length.Percent(50))
+
+// Transitions
+.Transition("background-color", 0.12f)                 // property + duration (seconds)
+.Transition("color", 0.12f, EasingMode.EaseOut)        // + easing
+.TransitionProperty("opacity", "translate")            // comma list: opacity, translate
+.TransitionDuration(0.18f)                             // 0.18s
+.TransitionTimingFunction(EasingMode.EaseOut)
+.TransitionDelay(0.05f)
+
+// Effects - URP render-filter / shader assets
+.Filter("/Assets/UI/Filters/CrtScreen.asset")                  // filter("...")
+.Filter("/Assets/UI/Filters/PanelWeather.asset", 1.4f, 12f)    // with shader params
+.FilterRaw("filter(a) filter(b)")                              // escape hatch for chained filters
 ```
 
 ### Escape Hatch
@@ -412,4 +442,10 @@ Contributions welcome! Please feel free to submit issues and pull requests.
 
 1. Add the method to `StyleBuilder.cs`
 2. Add any necessary enum mappings to `EnumExtensions`
-3. Submit a PR
+3. Add a representative call to `Exercise()` in `Tests/Editor/UssPropertyValidationTests.cs`
+4. Run the validation test (**Window → General → Test Runner → EditMode**) to confirm Unity's own USS importer accepts the property — this is the source of truth, since the online docs drift between Unity versions
+5. Submit a PR
+
+### Validating supported properties
+
+`UssPropertyValidationTests` exercises every wrapper, generates a `.uss`, imports it through Unity's actual USS importer, and fails if any property name or value is rejected. It's the authoritative check for "is this a real USS property in our Unity version?" — run it after adding or changing any wrapper.

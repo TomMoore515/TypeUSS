@@ -103,6 +103,21 @@ namespace TypeUSS
         public StyleBuilder UnityBackgroundScaleMode(string mode)
             => Prop("-unity-background-scale-mode", mode);
 
+        // Background - 9-slice (edges are integer pixel counts in the source image)
+        public StyleBuilder UnitySliceLeft(int px) => Prop("-unity-slice-left", px.ToString(CultureInfo.InvariantCulture));
+        public StyleBuilder UnitySliceTop(int px) => Prop("-unity-slice-top", px.ToString(CultureInfo.InvariantCulture));
+        public StyleBuilder UnitySliceRight(int px) => Prop("-unity-slice-right", px.ToString(CultureInfo.InvariantCulture));
+        public StyleBuilder UnitySliceBottom(int px) => Prop("-unity-slice-bottom", px.ToString(CultureInfo.InvariantCulture));
+
+        public StyleBuilder UnitySlice(int all)
+            => UnitySliceLeft(all).UnitySliceTop(all).UnitySliceRight(all).UnitySliceBottom(all);
+
+        public StyleBuilder UnitySlice(int left, int top, int right, int bottom)
+            => UnitySliceLeft(left).UnitySliceTop(top).UnitySliceRight(right).UnitySliceBottom(bottom);
+
+        public StyleBuilder UnitySliceScale(Length scale)
+            => Prop("-unity-slice-scale", scale.ToUSS());
+
         // Colors
         public StyleBuilder BackgroundColor(Color color)
             => Prop("background-color", ColorToUSS(color));
@@ -220,7 +235,38 @@ namespace TypeUSS
         };
 
         public StyleBuilder UnityFontDefinition(Font font)
-            => Prop("-unity-font-definition", font != null ? $"resource('Fonts/{font.name}')" : "none");
+            => Prop("-unity-font-definition", font != null ? $"resource('Fonts/{font.name}')" : "initial");
+
+        public StyleBuilder WordSpacing(float value)
+            => Prop("word-spacing", $"{value.ToString(CultureInfo.InvariantCulture)}px");
+
+        public StyleBuilder UnityParagraphSpacing(float value)
+            => Prop("-unity-paragraph-spacing", $"{value.ToString(CultureInfo.InvariantCulture)}px");
+
+        // Text effects
+        public StyleBuilder TextShadow(float offsetX, float offsetY, float blurRadius, Color color)
+            => Prop("text-shadow", $"{offsetX}px {offsetY}px {blurRadius}px {ColorToUSS(color)}");
+
+        public StyleBuilder UnityTextOutlineWidth(float px)
+            => Prop("-unity-text-outline-width", $"{px}px");
+
+        public StyleBuilder UnityTextOutlineColor(Color color)
+            => Prop("-unity-text-outline-color", ColorToUSS(color));
+
+        // Shorthand: width + color
+        public StyleBuilder UnityTextOutline(float width, Color color)
+            => Prop("-unity-text-outline", $"{width}px {ColorToUSS(color)}");
+
+        // Text cursor / caret color
+        public StyleBuilder UnityCursorColor(Color color)
+            => Prop("--unity-cursor-color", ColorToUSS(color));
+
+        public StyleBuilder UnityCursorColor(string value)
+            => Prop("--unity-cursor-color", value);
+
+        // Mouse cursor (grammar varies: keyword | resource("..") | url("..") x y) - passthrough
+        public StyleBuilder Cursor(string value)
+            => Prop("cursor", value);
 
         // Background positioning
         public StyleBuilder BackgroundPosition(BackgroundPositionKeyword horizontal, BackgroundPositionKeyword vertical)
@@ -273,9 +319,71 @@ namespace TypeUSS
         public StyleBuilder BackgroundSize(Length width, Length height)
             => Prop("background-size", $"{width.ToUSS()} {height.ToUSS()}");
 
+        // Transitions
+        public StyleBuilder TransitionProperty(params string[] properties)
+            => Prop("transition-property", string.Join(", ", properties));
+
+        public StyleBuilder TransitionDuration(params float[] seconds)
+            => Prop("transition-duration", JoinSeconds(seconds));
+
+        public StyleBuilder TransitionDelay(params float[] seconds)
+            => Prop("transition-delay", JoinSeconds(seconds));
+
+        public StyleBuilder TransitionTimingFunction(params EasingMode[] easings)
+            => Prop("transition-timing-function", JoinEasings(easings));
+
+        // Convenience combiner for the common single-property case
+        public StyleBuilder Transition(string property, float durationSeconds)
+            => TransitionProperty(property).TransitionDuration(durationSeconds);
+
+        public StyleBuilder Transition(string property, float durationSeconds, EasingMode easing)
+            => TransitionProperty(property).TransitionDuration(durationSeconds).TransitionTimingFunction(easing);
+
+        private static string JoinSeconds(float[] seconds)
+        {
+            var parts = new string[seconds.Length];
+            for (int i = 0; i < seconds.Length; i++)
+                parts[i] = $"{seconds[i].ToString(CultureInfo.InvariantCulture)}s";
+            return string.Join(", ", parts);
+        }
+
+        private static string JoinEasings(EasingMode[] easings)
+        {
+            var parts = new string[easings.Length];
+            for (int i = 0; i < easings.Length; i++)
+                parts[i] = easings[i].ToUSS();
+            return string.Join(", ", parts);
+        }
+
+        // Effects - Filter (URP render-filter / shader assets)
+        public StyleBuilder Filter(string assetPath, params float[] parameters)
+        {
+            var value = $"filter(\"{assetPath}\"";
+            foreach (var p in parameters)
+                value += $" {p.ToString(CultureInfo.InvariantCulture)}";
+            value += ")";
+            return Prop("filter", value);
+        }
+
+        // Escape hatch for fully custom filter expressions (e.g. chained filters)
+        public StyleBuilder FilterRaw(string value)
+            => Prop("filter", value);
+
         // Transform
         public StyleBuilder Rotate(float degrees)
             => Prop("rotate", $"{degrees}deg");
+
+        public StyleBuilder Scale(float uniform)
+            => Prop("scale", uniform.ToString(CultureInfo.InvariantCulture));
+
+        public StyleBuilder Scale(float x, float y)
+            => Prop("scale", $"{x.ToString(CultureInfo.InvariantCulture)} {y.ToString(CultureInfo.InvariantCulture)}");
+
+        public StyleBuilder TransformOrigin(Length x, Length y)
+            => Prop("transform-origin", $"{x.ToUSS()} {y.ToUSS()}");
+
+        public StyleBuilder Translate(Length x, Length y)
+            => Prop("translate", $"{x.ToUSS()} {y.ToUSS()}");
 
         private static string ColorToUSS(Color color)
         {
@@ -357,6 +465,34 @@ namespace TypeUSS
             Overflow.Visible => "visible",
             Overflow.Hidden => "hidden",
             _ => "visible"
+        };
+
+        public static string ToUSS(this EasingMode value) => value switch
+        {
+            EasingMode.Ease => "ease",
+            EasingMode.EaseIn => "ease-in",
+            EasingMode.EaseOut => "ease-out",
+            EasingMode.EaseInOut => "ease-in-out",
+            EasingMode.Linear => "linear",
+            EasingMode.EaseInSine => "ease-in-sine",
+            EasingMode.EaseOutSine => "ease-out-sine",
+            EasingMode.EaseInOutSine => "ease-in-out-sine",
+            EasingMode.EaseInCubic => "ease-in-cubic",
+            EasingMode.EaseOutCubic => "ease-out-cubic",
+            EasingMode.EaseInOutCubic => "ease-in-out-cubic",
+            EasingMode.EaseInCirc => "ease-in-circ",
+            EasingMode.EaseOutCirc => "ease-out-circ",
+            EasingMode.EaseInOutCirc => "ease-in-out-circ",
+            EasingMode.EaseInElastic => "ease-in-elastic",
+            EasingMode.EaseOutElastic => "ease-out-elastic",
+            EasingMode.EaseInOutElastic => "ease-in-out-elastic",
+            EasingMode.EaseInBack => "ease-in-back",
+            EasingMode.EaseOutBack => "ease-out-back",
+            EasingMode.EaseInOutBack => "ease-in-out-back",
+            EasingMode.EaseInBounce => "ease-in-bounce",
+            EasingMode.EaseOutBounce => "ease-out-bounce",
+            EasingMode.EaseInOutBounce => "ease-in-out-bounce",
+            _ => "ease"
         };
     }
 }
