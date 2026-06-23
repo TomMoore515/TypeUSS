@@ -10,7 +10,7 @@ Write your UI Toolkit styles in C# with full IntelliSense and compile-time safet
 ![USS](https://img.shields.io/badge/Language-USS-blue?style=for-the-badge)
 
 > [!NOTE]
-> The code contained in this package is from my personal Unity project Automancer, while we are using it in production, that does not mean it is perfect or stable - this package should be considered experimental and the API may change without warning.
+> The code contained in this package is from my personal Unity projects, while we are using it in production, that does not mean it is perfect or stable - this package should be considered experimental and the API may change without warning.
 
 ## Overview
 
@@ -398,7 +398,7 @@ namespace MyGame.UI.Components
 
 ## Unity Version Compatibility
 
-TypeUSS was developed and tested with Unity 6.3 - it may work with earlier versions but I have not taken the time to verify compatibility.
+TypeUSS was developed and tested with Unity 6.5 - it may work with earlier versions but I have not taken the time to verify compatibility.
 
 ## License
 

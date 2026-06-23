@@ -1,10 +1,10 @@
 {
     "name": "com.starfoundry.typeuss",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "displayName": "TypeUSS",
     "description": "Typesafe C# authoring for Unity UI Toolkit Stylesheets.",
-    "unity": "6.2",
-    "unityRelease": "6f2",
+    "unity": "6.5",
+    "unityRelease": "0f1",
     "keywords": [
       "plugin",
       "tool",
